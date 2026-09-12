@@ -1,0 +1,141 @@
+name: Build
+
+on:
+  push:
+    tags: ['v*']
+    # Branch pushes exercise the pipeline; the release job is tag-only.
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  # Upstream has no tags and no releases, so odio-ci's resolve-version and
+  # watch-upstream (both release-driven) have nothing to work from. The commit
+  # is pinned here instead; bumping it is a commit to this repo, then a tag.
+  UPSTREAM_REPO: e1z0/Framebuffer-browser
+  UPSTREAM_COMMIT: 4213a694ea2e2e846ef1c176bdb13bf6d025a8a6
+  # The version upstream's own build_debian_packages stamps (PACK_VER).
+  UPSTREAM_VERSION: 1.0.0
+
+jobs:
+  # Once for both arches, so they cannot disagree on the version.
+  resolve:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+    steps:
+      - name: Resolve
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DATE="$(gh api "repos/${UPSTREAM_REPO}/commits/${UPSTREAM_COMMIT}" \
+            --jq '.commit.committer.date' | cut -c1-10 | tr -d -)"
+          # 1.0.0+git20260211.4213a69: '+git' sorts above a future upstream
+          # 1.0.0 proper would not, but the date keeps successive pins ordered.
+          BASE="${UPSTREAM_VERSION}+git${DATE}.${UPSTREAM_COMMIT:0:7}"
+
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+            # The tag must name the pinned commit, so a stale tag cannot
+            # publish a package built from something else.
+            case "${TAG}" in
+              "v${BASE}")                 VERSION="${BASE}" ;;
+              "v${BASE}"-rc*|"v${BASE}"-beta*|"v${BASE}"-alpha*)
+                # '~' sorts below nothing, so the prerelease stays below the
+                # release and apt upgrades off it.
+                VERSION="${BASE}~${TAG#"v${BASE}"-}" ;;
+              *)
+                echo "::error::tag ${TAG} does not match the pinned upstream commit; expected v${BASE}[-rcN]"
+                exit 1 ;;
+            esac
+          else
+            # Nothing is published off a branch; 0.0.0 sorts below every real
+            # release in case one escapes as an artifact.
+            VERSION="0.0.0+ci.${GITHUB_SHA:0:7}"
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "${{ github.ref_name }} → ${UPSTREAM_REPO}@${UPSTREAM_COMMIT:0:7}, deb version ${VERSION}"
+
+  build:
+    name: Build ${{ matrix.arch }}
+    needs: resolve
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      # No armhf — see build-images.yml.
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v7
+
+      - name: Checkout upstream Framebuffer-browser
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.UPSTREAM_REPO }}
+          ref: ${{ env.UPSTREAM_COMMIT }}
+          path: upstream
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build .deb
+        run: |
+          docker run --rm \
+            --platform ${{ matrix.platform }} \
+            -v "$PWD":/workspace -w /workspace \
+            ghcr.io/${{ github.repository_owner }}/odio-framebuffer-ui-builder:${{ matrix.arch }} \
+            ./scripts/build-deb.sh --version '${{ needs.resolve.outputs.version }}'
+
+      - name: Extract the binary for inspection
+        run: dpkg-deb -x dist/fbrowser-kiosk_*_${{ matrix.arch }}.deb extract/
+
+      - name: Check binary
+        uses: b0bbywan/odio-ci/actions/check-binary@v1.0.3
+        with:
+          binary: extract/usr/bin/fbrowser-kiosk
+          arch: ${{ matrix.arch }}
+          # Built on trixie, and Depends pins trixie's Qt anyway: the package
+          # targets trixie / Pi OS trixie, not bookworm.
+          glibc_max: '2.41'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fbrowser-kiosk-${{ matrix.arch }}-deb
+          path: dist/*.deb
+          if-no-files-found: error
+          retention-days: 7
+
+  # `needs: build` waits for the whole matrix, so the release is published once
+  # with every arch — which immutable releases also require.
+  release:
+    name: Release and reindex
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    uses: b0bbywan/odio-ci/.github/workflows/release.yml@v1.0.3
+    with:
+      artifact_pattern: fbrowser-kiosk-*-deb
+    secrets:
+      apt_repo_token: ${{ secrets.APT_REPO_TOKEN }}

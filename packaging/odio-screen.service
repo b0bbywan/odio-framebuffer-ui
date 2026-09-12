@@ -1,0 +1,33 @@
+# odio UI on a screen wired to the node, drawn straight onto /dev/fb0.
+#
+# Shipped, not enabled. As the user running odio-api:
+#   sudo usermod -aG tty,video,input $USER     # then log in again
+#   sudo loginctl enable-linger $USER          # headless: no login session
+#   systemctl --user enable --now odio-screen.service
+#
+# Two journal lines on every start are expected: "Failed to open tty
+# (Permission denied)" — a user service has no console — and "Could not open
+# config.json" — the URL comes from the command line instead.
+[Unit]
+Description=odio UI on the local screen
+After=odio-api.service
+StartLimitBurst=15
+StartLimitIntervalSec=30
+
+[Service]
+Type=simple
+Environment=QT_QPA_PLATFORM=linuxfb:fb=/dev/fb0:nographicsmodeswitch=1
+Environment=QT_QPA_FB_NO_LIBINPUT=1
+Environment=QT_QPA_FB_FORCE_FULLSCREEN=1
+Environment=QT_QPA_ENABLE_TERMINAL_KEYBOARD=0
+# Quoted, or systemd stops at the first space and drops the second flag.
+Environment="QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu --disable-gpu-compositing"
+ExecStart=/usr/bin/fbrowser-kiosk http://localhost:8018/ui
+ExecStop=/bin/kill $MAINPID
+Restart=on-failure
+RestartSec=2
+KillMode=mixed
+TimeoutStopSec=5
+
+[Install]
+WantedBy=default.target
