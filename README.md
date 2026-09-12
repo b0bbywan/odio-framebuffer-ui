@@ -70,7 +70,8 @@ To build locally:
 git clone https://github.com/e1z0/Framebuffer-browser upstream
 docker build -t fbui-builder -f docker/builder.Dockerfile docker
 docker run --rm -v "$PWD":/workspace -w /workspace fbui-builder \
-  ./scripts/build-deb.sh --version 0.0.0+local
+  ./scripts/build-deb.sh --version 0.0.0+local \
+    --commit "$(git -C upstream rev-parse HEAD)"
 ```
 
 ## License

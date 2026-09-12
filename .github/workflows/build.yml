@@ -104,7 +104,9 @@ jobs:
             --platform ${{ matrix.platform }} \
             -v "$PWD":/workspace -w /workspace \
             ghcr.io/${{ github.repository_owner }}/odio-framebuffer-ui-builder:${{ matrix.arch }} \
-            ./scripts/build-deb.sh --version '${{ needs.resolve.outputs.version }}'
+            ./scripts/build-deb.sh \
+              --version '${{ needs.resolve.outputs.version }}' \
+              --commit '${{ env.UPSTREAM_COMMIT }}'
 
       - name: Extract the binary for inspection
         run: dpkg-deb -x dist/fbrowser-kiosk_*_${{ matrix.arch }}.deb extract/

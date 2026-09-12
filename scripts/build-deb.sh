@@ -6,7 +6,11 @@
 # arch being packaged.
 #
 # Usage:
-#   build-deb.sh --version <1.0.0+git20260211.4213a69> [--src ./upstream] [--out ./dist]
+#   build-deb.sh --version <1.0.0+git20260211.4213a69> --commit <upstream sha>
+#                [--src ./upstream] [--out ./dist]
+#
+# --commit is the upstream commit the tree was checked out at; the copyright
+# file names it as the corresponding source.
 #
 # Upstream has no install rule and no usable Debian packaging (its debian/ holds
 # prebuilt bullseye/bookworm .debs installing into /usr/local), so this stages
@@ -16,21 +20,23 @@
 set -euo pipefail
 
 PKG="fbrowser-kiosk"
-VERSION="" SRC="./upstream" OUT="./dist"
+VERSION="" COMMIT="" SRC="./upstream" OUT="./dist"
 
 die() { echo "error: $*" >&2; exit 1; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --version) VERSION="$2"; shift 2 ;;
+    --commit)  COMMIT="$2"; shift 2 ;;
     --src)     SRC="$2"; shift 2 ;;
     --out)     OUT="$2"; shift 2 ;;
-    -h|--help) sed -n '4,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '4,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
 done
 
 [ -n "${VERSION}" ] || die "--version is required"
+[ -n "${COMMIT}" ]  || die "--commit is required"
 [ -f "${SRC}/mainwindow.cpp" ] || die "no Framebuffer-browser tree at ${SRC}"
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -55,12 +61,45 @@ strip --strip-unneeded "${STAGE}/usr/bin/${PKG}"
 install -Dm644 "${REPO_ROOT}/packaging/odio-screen.service" \
                "${STAGE}/usr/lib/systemd/user/odio-screen.service"
 install -Dm644 "${SRC}/README.md" "${STAGE}/usr/share/doc/${PKG}/README.md"
-{
-  echo "Upstream: https://github.com/e1z0/Framebuffer-browser"
-  echo "License: LGPL-3.0"
-  echo
-  cat "${SRC}/LICENSE.LGPLv3"
-} > "${STAGE}/usr/share/doc/${PKG}/copyright"
+
+# LGPL-3 is a set of permissions on top of GPL-3, so both apply; base-files
+# ships the two texts in /usr/share/common-licenses. The lineage is
+# 44670/FBrowser → shownb/FBrowser → e1z0/Framebuffer-browser, LGPL-3 all the
+# way. The compiled files (main.cpp, mainwindow.*) carry no headers. The
+# BSD-licensed Qt simplebrowser example and data/3rdparty icons are
+# FULLBROWSER-only and not in this binary. The exact commit is named so the
+# corresponding source stays findable, as LGPL-3 §4 / GPL-3 §6 require.
+install -d "${STAGE}/usr/share/doc/${PKG}"
+cat > "${STAGE}/usr/share/doc/${PKG}/copyright" <<EOF
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Framebuffer-browser
+Upstream-Contact: https://github.com/e1z0/Framebuffer-browser/issues
+Source: https://github.com/e1z0/Framebuffer-browser/tree/${COMMIT}
+Comment: Upstream also offers a commercial license; this package is
+ distributed under the LGPL-3 terms only.
+
+Files: *
+Copyright: 2022 44670 <https://github.com/44670/FBrowser>
+           2022 shownb <https://github.com/shownb/FBrowser>
+           2022 e1z0 <e1z0@eofnet.lt>
+License: LGPL-3
+ This package is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License version 3 as
+ published by the Free Software Foundation.
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License version 3 can be found in "/usr/share/common-licenses/LGPL-3", and
+ the GNU General Public License version 3 it incorporates in
+ "/usr/share/common-licenses/GPL-3".
+
+Files: usr/lib/systemd/user/odio-screen.service
+Copyright: 2026 Mathieu Réquillart <mathieu.requillart@gmail.com>
+License: MIT
+Comment: Packaging, from https://github.com/b0bbywan/odio-framebuffer-ui
+
+License: MIT
+$(sed 's/^$/./; s/^/ /' "${REPO_ROOT}/LICENSE")
+EOF
 chmod 644 "${STAGE}/usr/share/doc/${PKG}/copyright"
 
 echo "=== gate: every shared library resolves ==="
