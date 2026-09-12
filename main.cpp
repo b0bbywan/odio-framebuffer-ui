@@ -9,8 +9,6 @@
 #include "tabwidget.h"
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
-#include <QtWebEngineWidgets/QWebEngineSettings>
-#include <QtWebEngineWidgets/QWebEngineProfile>
 
 QUrl commandLineUrlArgument()
 {

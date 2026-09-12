@@ -54,6 +54,29 @@ Also there are some changes recently, I was able to port simplebrowser from QT e
 
 You can compile it with "FULLBROWSER" cmake option. See more videos [here](promo.md).
 
+# Qt 6
+
+The default build uses Qt 5. Qt 6 is available behind a cmake option:
+
+```shell
+mkdir build && cd build && cmake -DUSE_QT6=ON .. && make
+```
+
+It is worth the trouble because the engine underneath is far newer. Qt 5.15
+carries Chromium 87, from late 2020, which predates `:where()`, `accent-color`,
+container queries and unprefixed `mask-*`; a modern site can lose whole CSS
+rules there without reporting anything. Qt 6.8, the version Debian trixie
+ships, carries Chromium 122.
+
+The framebuffer path is unaffected: Qt 6 still ships the `linuxfb` platform
+plugin and the same evdev input handlers, so every `QT_QPA_*` setting in
+**run-fb** and **fbrowser** keeps working.
+
+Only the default browser is ported. The full browser is the Qt 5 simplebrowser
+example, whose download, certificate error and default-settings APIs were
+reworked in Qt 6, so cmake refuses `-DUSE_QT6=ON -DFULLBROWSER=ON` rather than
+failing halfway through the build.
+
 # TODO
 
 * cmake option for statically linking

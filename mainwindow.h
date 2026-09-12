@@ -6,9 +6,13 @@
 #include <QWidget>
 #include <QShortcut>
 #include <QSettings>
-#include <QtWebEngineWidgets/QWebEngineFullScreenRequest>
-#include <QtWebEngineWidgets/QWebEnginePage>
-#include <QtWebEngineWidgets/QWebEngineView>
+// Unqualified includes: QWebEngineView stays in QtWebEngineWidgets, while the
+// page, profile, settings and fullscreen request classes moved to
+// QtWebEngineCore in Qt 6. Both modules ship forwarding headers, so dropping
+// the module prefix builds against either major version.
+#include <QWebEngineFullScreenRequest>
+#include <QWebEnginePage>
+#include <QWebEngineView>
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
