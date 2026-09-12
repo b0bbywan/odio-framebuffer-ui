@@ -64,14 +64,25 @@ automatically when `docker/builder.Dockerfile` changes, monthly, or on demand
 gh workflow run build-images.yml
 ```
 
-To build locally:
+## Packaging
+
+Plain debhelper, in [`debian/`](debian). Upstream carries no usable Debian
+packaging, so the CI replaces upstream's `debian/` with this one, writes the
+changelog for the version being built with `dch`, runs
+`dpkg-buildpackage -b` and gates the result with lintian. `Depends` comes from
+`dh_shlibdeps`.
+
+To build locally, mirroring the `Build .deb` step of the workflow:
 
 ```bash
 git clone https://github.com/e1z0/Framebuffer-browser upstream
 docker build -t fbui-builder -f docker/builder.Dockerfile docker
-docker run --rm -v "$PWD":/workspace -w /workspace fbui-builder \
-  ./scripts/build-deb.sh --version 0.0.0+local \
-    --commit "$(git -C upstream rev-parse HEAD)"
+docker run --rm -v "$PWD":/workspace -w /workspace \
+  -e DEBEMAIL=you@example.com -e DEB_BUILD_OPTIONS=noddebs fbui-builder bash -c '
+    rm -rf upstream/debian && cp -r debian upstream/debian && cd upstream &&
+    dch --create --package fbrowser-kiosk --newversion 0.0.0+local \
+      --distribution trixie --force-distribution "Local build." &&
+    dpkg-buildpackage -b -us -uc'
 ```
 
 ## License

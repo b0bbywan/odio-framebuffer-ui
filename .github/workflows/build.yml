@@ -98,15 +98,38 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Upstream's own debian/ only holds prebuilt bullseye/bookworm .debs, so
+      # it is replaced wholesale. The changelog is written per build: it
+      # carries the derived version and names the upstream commit, which is
+      # how the shipped package points at its corresponding source.
       - name: Build .deb
         run: |
           docker run --rm \
             --platform ${{ matrix.platform }} \
             -v "$PWD":/workspace -w /workspace \
+            -e VERSION='${{ needs.resolve.outputs.version }}' \
+            -e UPSTREAM_REPO -e UPSTREAM_COMMIT \
+            -e DEBEMAIL='mathieu.requillart@gmail.com' \
+            -e DEBFULLNAME='Mathieu Réquillart' \
+            -e DEB_BUILD_OPTIONS=noddebs \
             ghcr.io/${{ github.repository_owner }}/odio-framebuffer-ui-builder:${{ matrix.arch }} \
-            ./scripts/build-deb.sh \
-              --version '${{ needs.resolve.outputs.version }}' \
-              --commit '${{ env.UPSTREAM_COMMIT }}'
+            bash -c '
+              set -e
+              rm -rf upstream/debian
+              cp -r debian upstream/debian
+              cd upstream
+              dch --create --package fbrowser-kiosk \
+                --newversion "${VERSION}" --distribution trixie --force-distribution \
+                "Build of ${UPSTREAM_REPO}@${UPSTREAM_COMMIT}."
+              dpkg-buildpackage -b -us -uc
+              lintian --fail-on error ../fbrowser-kiosk_*.deb
+            '
+
+      - name: Collect package
+        run: |
+          mkdir -p dist
+          mv fbrowser-kiosk_*_${{ matrix.arch }}.deb dist/
+          ls -lh dist/
 
       - name: Extract the binary for inspection
         run: dpkg-deb -x dist/fbrowser-kiosk_*_${{ matrix.arch }}.deb extract/

@@ -1,0 +1,21 @@
+Source: fbrowser-kiosk
+Section: web
+Priority: optional
+Maintainer: Mathieu Réquillart <mathieu.requillart@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               qtwebengine5-dev
+Standards-Version: 4.7.2
+Homepage: https://github.com/e1z0/Framebuffer-browser
+Vcs-Browser: https://github.com/b0bbywan/odio-framebuffer-ui
+Rules-Requires-Root: no
+
+Package: fbrowser-kiosk
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: QtWebEngine kiosk browser for the Linux framebuffer
+ Single-window web browser drawing straight onto /dev/fb0, with no X server
+ or Wayland compositor. Built from e1z0/Framebuffer-browser for odio.
+ .
+ Ships a user unit, odio-screen.service, not enabled, that shows the odio
+ embedded UI on a screen wired to the node.

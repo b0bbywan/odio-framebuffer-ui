@@ -3,12 +3,12 @@ FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Compile deps of upstream's kiosk build (main.cpp + mainwindow.cpp against
-# Qt 5 WebEngine) + what scripts/build-deb.sh needs to stage and package it.
-# qtwebengine5-dev pulls qtbase5-dev, which carries the cmake configs.
+# Build-Depends from debian/control + packaging tooling: dch writes the
+# changelog for each build, lintian gates the result.
+# apt lists kept so a Build-Depends added later can still be satisfied with
+# `apt-get build-dep` / `mk-build-deps` without an extra `apt-get update`.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
-      cmake make g++ pkg-config \
+      build-essential debhelper cmake \
       qtwebengine5-dev \
-      dpkg-dev binutils file \
- && rm -rf /var/lib/apt/lists/*
+      devscripts lintian
