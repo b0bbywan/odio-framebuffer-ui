@@ -1,0 +1,7 @@
+dist/
+build/
+stage/
+upstream/
+*.deb
+*.buildinfo
+*.changes
