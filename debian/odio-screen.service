@@ -10,7 +10,9 @@
 # config.json" — the URL comes from the command line instead.
 [Unit]
 Description=odio UI on the local screen
-After=odio-api.service
+# default.target as odio-api has it: otherwise the target orders itself after
+# this unit, and odio-api (After=default.target) closes a cycle at boot.
+After=default.target odio-api.service
 # Restarted along with odio-api, so the page never outlives the server it shows.
 PartOf=odio-api.service
 StartLimitBurst=15
@@ -28,7 +30,8 @@ Environment="QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu --disable-gpu-compositing"
 ExecStartPre=/bin/sh -c 'until curl -fso /dev/null http://localhost:8018/ui; do sleep 1; done'
 TimeoutStartSec=120
 ExecStart=/usr/bin/fbrowser-kiosk http://localhost:8018/ui
-ExecStop=/bin/kill $MAINPID
+# The kiosk exits 1 on SIGTERM: a plain stop is not a failure.
+SuccessExitStatus=1
 Restart=on-failure
 RestartSec=2
 KillMode=mixed
