@@ -1,3 +1,2 @@
-# Installed as a plain file rather than through dh_installsystemduser, which
-# would enable the unit for every user on install.
+# Not enabled on install: see override_dh_installsystemduser in debian/rules.
 debian/odio-screen.service usr/lib/systemd/user/

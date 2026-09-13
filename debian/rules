@@ -14,3 +14,9 @@ override_dh_auto_configure:
 # nothing; the binary is renamed on the way, which a .install file cannot do.
 override_dh_auto_install:
 	install -Dm755 build/FBrowser debian/fbrowser-kiosk/usr/bin/fbrowser-kiosk
+
+# dh_installsystemduser also picks up units already installed under
+# usr/lib/systemd/user, and would enable odio-screen.service for every user on
+# install. Showing the UI on a screen is opt-in, per user.
+override_dh_installsystemduser:
+	dh_installsystemduser --no-enable
