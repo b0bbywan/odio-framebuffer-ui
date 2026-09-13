@@ -36,8 +36,10 @@ jobs:
           set -euo pipefail
           DATE="$(gh api "repos/${UPSTREAM_REPO}/commits/${UPSTREAM_COMMIT}" \
             --jq '.commit.committer.date' | cut -c1-10 | tr -d -)"
-          # 1.0.0+git20260211.4213a69: '+git' sorts above a future upstream
+          # 1.0.0+git20260210.4213a69: '+git' sorts above a future upstream
           # 1.0.0 proper would not, but the date keeps successive pins ordered.
+          # The committer date is taken in UTC, which can differ by a day from
+          # what a local `git log` shows.
           BASE="${UPSTREAM_VERSION}+git${DATE}.${UPSTREAM_COMMIT:0:7}"
 
           if [ "${{ github.ref_type }}" = "tag" ]; then

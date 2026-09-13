@@ -42,13 +42,13 @@ derived from it — upstream's `1.0.0`, the commit date and short sha — and th
 tag must match it:
 
 ```bash
-git tag v1.0.0+git20260211.4213a69 && git push origin v1.0.0+git20260211.4213a69
+git tag v1.0.0+git20260210.4213a69 && git push origin v1.0.0+git20260210.4213a69
 ```
 
 A prerelease (routed to the `testing` channel of the APT repo) adds a suffix:
 
 ```bash
-git tag v1.0.0+git20260211.4213a69-rc1 && git push origin v1.0.0+git20260211.4213a69-rc1
+git tag v1.0.0+git20260210.4213a69-rc1 && git push origin v1.0.0+git20260210.4213a69-rc1
 ```
 
 A tag that does not name the pinned commit fails the build. To follow upstream,
