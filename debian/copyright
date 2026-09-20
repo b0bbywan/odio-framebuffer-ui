@@ -2,14 +2,14 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Framebuffer-browser
 Upstream-Contact: https://github.com/e1z0/Framebuffer-browser/issues
 Source: https://github.com/e1z0/Framebuffer-browser
-Comment: The exact upstream commit a package was built from is recorded in
- its changelog.Debian. Upstream also offers a commercial license; this package
- is distributed under the LGPL-3 terms only.
+Comment: This repository carries the default single-window browser, derived
+ from e1z0/Framebuffer-browser at commit 4213a694. The full browser, which is
+ the BSD-licensed Qt simplebrowser example, and the data/3rdparty icons are
+ not carried here.
  .
- The lineage is 44670/FBrowser → shownb/FBrowser → e1z0/Framebuffer-browser,
- LGPL-3 throughout. The BSD-licensed Qt simplebrowser example and the
- data/3rdparty icons are only built with FULLBROWSER, and are not in this
- package.
+ The lineage is 44670/FBrowser -> shownb/FBrowser -> e1z0/Framebuffer-browser,
+ LGPL-3 throughout. Upstream also offers a commercial license; this package is
+ distributed under the LGPL-3 terms only.
 
 Files: *
 Copyright: 2022 44670 <https://github.com/44670/FBrowser>

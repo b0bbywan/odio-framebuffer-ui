@@ -23,9 +23,9 @@ sudo loginctl enable-linger $USER
 systemctl --user enable --now odio-screen.service
 ```
 
-Upstream's interactive `fbrowser` launcher is not shipped: the unit sets the
-`QT_QPA_*` variables it would export, and the URL comes from the command line,
-so `config.json` is not needed.
+Upstream's interactive `fbrowser` launcher is gone with the rest: the unit
+sets the `QT_QPA_*` variables it would export, and the URL comes from the
+command line, so `config.json` is not needed either.
 
 ## Architectures
 
