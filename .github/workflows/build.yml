@@ -120,6 +120,12 @@ jobs:
               rm -rf upstream/debian
               cp -r debian upstream/debian
               cd upstream
+              # The image is baked on main, so a branch can outrun it.
+              if ! dpkg-checkbuilddeps 2>/dev/null; then
+                echo "::warning::builder image is behind debian/control, installing build deps"
+                apt-get update -qq
+                apt-get build-dep -y --no-install-recommends ./
+              fi
               dch --create --package fbrowser-kiosk \
                 --newversion "${VERSION}" --distribution trixie --force-distribution \
                 "Build of ${UPSTREAM_REPO}@${UPSTREAM_COMMIT}."
