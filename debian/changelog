@@ -12,5 +12,8 @@ fbrowser-kiosk (2.0.0) trixie; urgency=medium
     silently dropped CSS rules and missing JavaScript built-ins.
   * MainWindow no longer persists the current URL on close: it wrote
     through a QSettings pointer that was never allocated.
+  * The user agent is Qt's own, which names QtWebEngine and its Chromium,
+    with a fbrowser-kiosk suffix. It used to claim to be Firefox 89, which
+    made every server log line about this browser misleading.
 
  -- Mathieu Réquillart <mathieu.requillart@gmail.com>  Sun, 20 Sep 2026 15:00:00 +0200

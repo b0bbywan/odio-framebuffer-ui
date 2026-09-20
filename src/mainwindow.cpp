@@ -106,7 +106,9 @@ MainWindow::MainWindow()
   keyForward->setKey(Qt::CTRL | Qt::Key_Right);
   connect(keyForward, SIGNAL(activated()), this, SLOT(slotShortcutForward()));
 
-  this->webView->page()->profile()->setHttpUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0");
+  // Qt's own user agent names the engine; the suffix names the client.
+  QWebEngineProfile *profile = this->webView->page()->profile();
+  profile->setHttpUserAgent(profile->httpUserAgent() + " fbrowser-kiosk");
 
   // Handle page load events
   connect(webView, SIGNAL(loadStarted()), this, SLOT(onLoadStarted()));
