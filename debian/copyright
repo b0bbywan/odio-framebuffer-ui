@@ -1,7 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Framebuffer-browser
-Upstream-Contact: https://github.com/e1z0/Framebuffer-browser/issues
-Source: https://github.com/e1z0/Framebuffer-browser
+Upstream-Name: fbrowser-kiosk
+Source: https://github.com/b0bbywan/odio-framebuffer-ui
 Comment: src/ is derived from e1z0/Framebuffer-browser at commit 4213a694,
  reduced to the default single-window browser and ported to Qt 6. The full
  browser, which is the BSD-licensed Qt simplebrowser example, and the
@@ -21,7 +20,7 @@ License: LGPL-3
 Files: debian/* docker/* .github/* README.md LICENSE
 Copyright: 2026 Mathieu Réquillart <mathieu.requillart@gmail.com>
 License: MIT
-Comment: Packaging, from https://github.com/b0bbywan/odio-framebuffer-ui
+Comment: Packaging, build pipeline and builder image.
 
 License: LGPL-3
  This package is free software; you can redistribute it and/or modify it

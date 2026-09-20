@@ -1,0 +1,16 @@
+fbrowser-kiosk (2.0.0) trixie; urgency=medium
+
+  Own source, Qt 6
+
+  * The browser source lives here now, reduced to the kiosk window: the
+    Qt 5 simplebrowser example that upstream carries behind FULLBROWSER is
+    gone, along with its tabs, downloads, popups and dialogs. What remains
+    is main.cpp and mainwindow.cpp, derived from e1z0/Framebuffer-browser
+    at 4213a69 and still LGPL-3.
+  * Built against Qt 6 instead of Qt 5.15, so the engine is Chromium 122
+    rather than Chromium 87 — five years of web platform, and the end of
+    silently dropped CSS rules and missing JavaScript built-ins.
+  * MainWindow no longer persists the current URL on close: it wrote
+    through a QSettings pointer that was never allocated.
+
+ -- Mathieu Réquillart <mathieu.requillart@gmail.com>  Sun, 20 Sep 2026 15:00:00 +0200
