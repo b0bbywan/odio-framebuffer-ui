@@ -1,6 +1,6 @@
-fbrowser-kiosk (2.0.0) trixie; urgency=medium
+odio-kiosk (2.0.0) trixie; urgency=medium
 
-  Own source, Qt 6
+  Own source, Qt 6, renamed odio-kiosk
 
   * The browser source lives here now, reduced to the kiosk window: the
     Qt 5 simplebrowser example that upstream carries behind FULLBROWSER is
@@ -12,8 +12,17 @@ fbrowser-kiosk (2.0.0) trixie; urgency=medium
     silently dropped CSS rules and missing JavaScript built-ins.
   * MainWindow no longer persists the current URL on close: it wrote
     through a QSettings pointer that was never allocated.
+  * The package, the binary and the unit are odio-kiosk, which they did not
+    agree on before. It Provides/Replaces/Breaks fbrowser-kiosk, so an
+    installed node migrates on upgrade.
+  * The unit is a template, odio-kiosk@.service: one instance per screen.
+    /etc/default/odio-kiosk carries the node's Qt environment, and each
+    screen names its page, and its framebuffer as FB if it is not the
+    first, in ~/.config/odio-kiosk/<instance>.conf. The health check waits
+    on the same URL. The unit names no server: ordering it after odio-api,
+    and restarting it with odio-api, is a drop-in the deployment writes.
   * The user agent is Qt's own, which names QtWebEngine and its Chromium,
-    with a fbrowser-kiosk suffix. It used to claim to be Firefox 89, which
+    with an odio-kiosk suffix. It used to claim to be Firefox 89, which
     made every server log line about this browser misleading.
 
  -- Mathieu Réquillart <mathieu.requillart@gmail.com>  Sun, 20 Sep 2026 15:00:00 +0200

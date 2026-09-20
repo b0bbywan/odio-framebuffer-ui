@@ -5,8 +5,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 %:
 	dh $@ --buildsystem=cmake --builddirectory=build
 
-# dh_installsystemduser also picks up units already installed under
-# usr/lib/systemd/user, and would enable odio-screen.service for every user on
-# install. Showing the UI on a screen is opt-in, per user.
+# @.user.service: the plain name would also land in usr/lib/systemd/system.
+# --no-enable: showing the UI on a screen is opt-in, per user.
 override_dh_installsystemduser:
 	dh_installsystemduser --no-enable

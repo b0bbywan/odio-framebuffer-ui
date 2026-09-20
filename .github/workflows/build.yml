@@ -111,18 +111,18 @@ jobs:
                   "CI build of ${GITHUB_SHA}."
               fi
               dpkg-buildpackage -b -us -uc
-              lintian --fail-on error /build/fbrowser-kiosk_*.deb
-              cp /build/fbrowser-kiosk_*.deb /workspace/dist/
+              lintian --fail-on error /build/odio-kiosk_*.deb
+              cp /build/odio-kiosk_*.deb /workspace/dist/
             '
           ls -lh dist/
 
       - name: Extract the binary for inspection
-        run: dpkg-deb -x dist/fbrowser-kiosk_*_${{ matrix.arch }}.deb extract/
+        run: dpkg-deb -x dist/odio-kiosk_*_${{ matrix.arch }}.deb extract/
 
       - name: Check binary
         uses: b0bbywan/odio-ci/actions/check-binary@v1.0.3
         with:
-          binary: extract/usr/bin/fbrowser-kiosk
+          binary: extract/usr/bin/odio-kiosk
           arch: ${{ matrix.arch }}
           # Built on trixie, and Depends pins trixie's Qt anyway: the package
           # targets trixie / Pi OS trixie, not bookworm.
@@ -131,7 +131,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: fbrowser-kiosk-${{ matrix.arch }}-deb
+          name: odio-kiosk-${{ matrix.arch }}-deb
           path: dist/*.deb
           if-no-files-found: error
           retention-days: 7
@@ -146,6 +146,6 @@ jobs:
       contents: write
     uses: b0bbywan/odio-ci/.github/workflows/release.yml@v1.0.3
     with:
-      artifact_pattern: fbrowser-kiosk-*-deb
+      artifact_pattern: odio-kiosk-*-deb
     secrets:
       apt_repo_token: ${{ secrets.APT_REPO_TOKEN }}

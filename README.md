@@ -22,7 +22,7 @@
     <a href="https://github.com/features/actions"><img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white" alt="GitHub Actions" /></a>
   </p>
 
-# fbrowser-kiosk
+# odio-kiosk
 
 A single-window QtWebEngine browser drawing straight onto `/dev/fb0`, with no
 X server or Wayland compositor: one page, full screen, no chrome around it. It
@@ -45,19 +45,45 @@ a library. Qt 6.8, the version Debian trixie ships, carries Chromium 122.
 
 ## Contents
 
-- `/usr/bin/fbrowser-kiosk`
-- `/usr/lib/systemd/user/odio-screen.service` — shows the odio embedded UI
-  (`http://localhost:8018/ui`) on a screen wired to the node. Not enabled:
+- `/usr/bin/odio-kiosk`
+- `/etc/default/odio-kiosk` — the node's Qt environment: the framebuffer every
+  screen defaults to, the `QT_QPA_FB_*` settings and the Chromium flags.
+- `/usr/lib/systemd/user/odio-kiosk@.service` — a template, one instance per
+  screen. `~/.config/odio-kiosk/<instance>.conf` names the page that screen
+  shows, and its framebuffer if it is not the first:
+
+  ```
+  URL=http://localhost:8018/ui
+  FB=/dev/fb1
+  ```
+
+  No instance is enabled on install:
 
 ```bash
 sudo usermod -aG tty,video,input $USER     # then log in again
 sudo loginctl enable-linger $USER
-systemctl --user enable --now odio-screen.service
+mkdir -p ~/.config/odio-kiosk
+printf 'URL=http://localhost:8018/ui\n' > ~/.config/odio-kiosk/main.conf
+systemctl --user enable --now odio-kiosk@main.service
 ```
 
-The unit sets the `QT_QPA_*` variables upstream's `fbrowser` launcher would
-export, and the URL comes from the command line, so `config.json` is not
-needed.
+`/etc/default/odio-kiosk` sets the `QT_QPA_*` variables upstream's `fbrowser`
+launcher would export, and the URL comes from the command line, so
+`config.json` is not needed.
+
+The unit names no server. Which one to wait for, and be restarted with, is
+deployment configuration, so it goes in a drop-in:
+
+```ini
+# ~/.config/systemd/user/odio-kiosk@main.service.d/wait-for.conf
+[Unit]
+After=default.target my-server.service
+PartOf=my-server.service
+```
+
+`After=default.target` belongs there too: without it the target orders itself
+after the kiosk, and a server that is itself `After=default.target` closes a
+cycle at boot.
 
 ## Architectures
 
@@ -84,7 +110,7 @@ Or, against the system Qt 6:
 
 ```bash
 cmake -B build && cmake --build build
-./build/fbrowser-kiosk http://localhost:8018/ui
+./build/odio-kiosk http://localhost:8018/ui
 ```
 
 ## Releasing

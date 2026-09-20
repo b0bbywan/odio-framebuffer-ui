@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(fbrowser-kiosk LANGUAGES CXX)
+project(odio-kiosk LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,13 +9,13 @@ set(CMAKE_AUTOMOC ON)
 # mainwindow.cpp includes QMainWindow and QNetworkProxy directly.
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network WebEngineWidgets)
 
-add_executable(fbrowser-kiosk
+add_executable(odio-kiosk
     src/main.cpp
     src/mainwindow.cpp
     src/mainwindow.h
 )
 
-target_link_libraries(fbrowser-kiosk PRIVATE
+target_link_libraries(odio-kiosk PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
@@ -24,4 +24,4 @@ target_link_libraries(fbrowser-kiosk PRIVATE
 )
 
 include(GNUInstallDirs)
-install(TARGETS fbrowser-kiosk RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS odio-kiosk RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

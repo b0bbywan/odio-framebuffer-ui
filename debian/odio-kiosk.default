@@ -1,0 +1,8 @@
+# Environment for every odio-kiosk instance on this node. A screen's own
+# ~/.config/odio-kiosk/<instance>.conf overrides it.
+
+FB=/dev/fb0
+QT_QPA_FB_NO_LIBINPUT=1
+QT_QPA_FB_FORCE_FULLSCREEN=1
+QT_QPA_ENABLE_TERMINAL_KEYBOARD=0
+QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu --disable-gpu-compositing

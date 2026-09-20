@@ -108,7 +108,7 @@ MainWindow::MainWindow()
 
   // Qt's own user agent names the engine; the suffix names the client.
   QWebEngineProfile *profile = this->webView->page()->profile();
-  profile->setHttpUserAgent(profile->httpUserAgent() + " fbrowser-kiosk");
+  profile->setHttpUserAgent(profile->httpUserAgent() + " odio-kiosk");
 
   // Handle page load events
   connect(webView, SIGNAL(loadStarted()), this, SLOT(onLoadStarted()));

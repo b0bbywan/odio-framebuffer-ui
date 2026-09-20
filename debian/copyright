@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: fbrowser-kiosk
+Upstream-Name: odio-kiosk
 Source: https://github.com/b0bbywan/odio-framebuffer-ui
 Comment: src/ is derived from e1z0/Framebuffer-browser at commit 4213a694,
  reduced to the default single-window browser and ported to Qt 6. The full
