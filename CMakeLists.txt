@@ -1,39 +1,24 @@
 cmake_minimum_required(VERSION 3.16)
 project(FBrowser LANGUAGES CXX)
 
-file(GLOB source_files *.c *.cpp *.qrc)
-
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
 
-
-set(USE_QT6 OFF CACHE BOOL "Build against Qt 6 instead of Qt 5")
-
-if (USE_QT6)
-  find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network WebEngineWidgets)
-else()
-  find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network WebEngineWidgets)
-endif()
-add_definitions (-DQT_DISABLE_DEPRECATED_BEFORE=0x060000)
-
-set(PROJECT_SOURCES
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-)
-
+# mainwindow.cpp includes QMainWindow and QNetworkProxy directly.
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network WebEngineWidgets)
 
 add_executable(FBrowser
-    ${PROJECT_SOURCES}
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
 )
 
-target_link_libraries(FBrowser PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Widgets
-    Qt::Network
-    Qt::WebEngineWidgets
+target_link_libraries(FBrowser PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Network
+    Qt6::WebEngineWidgets
 )

@@ -1,15 +1,11 @@
-#ifndef BROWSERWINDOW_H
-#define BROWSERWINDOW_H
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 #include <QMainWindow>
 #include <QMenu>
 #include <QWidget>
 #include <QShortcut>
-#include <QSettings>
-// Unqualified includes: QWebEngineView stays in QtWebEngineWidgets, while the
-// page, profile, settings and fullscreen request classes moved to
-// QtWebEngineCore in Qt 6. Both modules ship forwarding headers, so dropping
-// the module prefix builds against either major version.
+// QtWebEngineCore since Qt 6, but the forwarding headers keep these working.
 #include <QWebEngineFullScreenRequest>
 #include <QWebEnginePage>
 #include <QWebEngineView>
@@ -43,10 +39,6 @@ class MainWindow : public QMainWindow {
   QShortcut *keyBack; // back in history
   QShortcut *keyForward; // forward in history
   void fullScreenRequested(QWebEngineFullScreenRequest request);
-  void writeSettings();
-  QSettings *appSettings;
- protected:
-  void closeEvent(QCloseEvent *);
 };
 
-#endif  // BROWSERWINDOW_H
+#endif  // MAINWINDOW_H

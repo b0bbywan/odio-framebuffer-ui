@@ -15,12 +15,6 @@
 #include <QWebEngineSettings>
 
 
-void MainWindow::closeEvent(QCloseEvent *) {
-  // This will be called whenever this window is closed.
-  writeSettings();
-  qDebug() << "closing2";
-}
-
 void MainWindow::configureWebView() {
   // Enable basic JavaScript support
   webView->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
@@ -38,15 +32,6 @@ void MainWindow::configureWebView() {
 }
 
 
-void MainWindow::writeSettings() {
-  // Write the values to disk in categories.
-  QString site = webView->url().toString();
-  appSettings->setValue("site", site);
-  qDebug() << " write settings:" << site;
-  QString hostname = webView->url().host();
-  webView->setUrl(appSettings->value("site").toString());
-}
-
 void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
   // fullscreen on video players
 
@@ -61,7 +46,6 @@ void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
 // Slot handler for Ctrl + Q
 void MainWindow::slotShortcutCtrlQ() {
   qDebug() << "closing1";
-//  writeSettings();
   webView->deleteLater(); // leave gracefully
   QApplication::quit();
 }

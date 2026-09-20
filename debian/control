@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Mathieu Réquillart <mathieu.requillart@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                cmake,
-               qtwebengine5-dev
+               qt6-base-dev,
+               qt6-webengine-dev
 Standards-Version: 4.7.2
 Homepage: https://github.com/e1z0/Framebuffer-browser
 Vcs-Browser: https://github.com/b0bbywan/odio-framebuffer-ui

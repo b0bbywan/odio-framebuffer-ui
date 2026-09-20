@@ -8,10 +8,18 @@ This is **not a fork** — no source code is vendored here. The CI clones
 upstream at a pinned commit, builds it inside per-arch builder images, and
 publishes `.deb` artifacts as a GitHub Release.
 
+## Why Qt 6
+
+Qt 5.15 carries Chromium 87, from late 2020. It predates `:where()`,
+`accent-color`, container queries, unprefixed `mask-*` and `Object.hasOwn`, and
+the failures are quiet: an unknown pseudo-class invalidates the CSS rule that
+contains it, and a missing built-in surfaces as a caught exception somewhere in
+a library. Qt 6.8, the version Debian trixie ships, carries Chromium 122.
+
 ## What is packaged
 
-`fbrowser-kiosk`: the single-window QtWebEngine browser (upstream's default
-cmake build, Qt 5), drawing straight onto `/dev/fb0` with no X server.
+`fbrowser-kiosk`: the single-window QtWebEngine browser, built against Qt 6,
+drawing straight onto `/dev/fb0` with no X server.
 
 - `/usr/bin/fbrowser-kiosk`
 - `/usr/lib/systemd/user/odio-screen.service` — shows the odio embedded UI
@@ -32,7 +40,10 @@ command line, so `config.json` is not needed either.
 - `amd64` (Debian trixie)
 - `arm64` (Debian trixie / Raspberry Pi OS trixie)
 
-No `armhf`: Raspberry Pi OS armhf ships no QtWebEngine binaries.
+No `armhf`. Raspberry Pi OS armhf is Raspbian, a separate rebuild of the
+archive, and it publishes the `qt6-webengine` source and its `Architecture: all`
+pieces but no armhf binary — exactly as it did for Qt 5. The Qt 6 move does not
+bring armhf back; a 64-bit Pi OS install does.
 
 ## Releasing
 
