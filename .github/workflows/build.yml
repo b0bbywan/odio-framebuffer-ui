@@ -25,20 +25,22 @@ jobs:
         id: pick
         run: |
           set -euo pipefail
-          # The changelog is the source of truth for the version; a release tag
-          # has to name it, so a stale tag cannot publish something else.
+          # The changelog is the source of truth for a release; a release tag has
+          # to name it, so a stale tag cannot publish something else.
           BASE="$(head -1 debian/changelog | sed -E 's/^[^(]*\(([^)]*)\).*/\1/')"
 
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAG="${{ github.ref_name }}"
             case "${TAG}" in
+              v*-rc*|v*-beta*|v*-alpha*)
+                # A prerelease names its own version, changelog or not.
+                UPSTREAM="${TAG#v}"
+                # '~' sorts below nothing, so it stays below the release and
+                # apt upgrades off it.
+                VERSION="${UPSTREAM%%-*}~${UPSTREAM#*-}" ;;
               "v${BASE}")                 VERSION="${BASE}" ;;
-              "v${BASE}"-rc*|"v${BASE}"-beta*|"v${BASE}"-alpha*)
-                # '~' sorts below nothing, so the prerelease stays below the
-                # release and apt upgrades off it.
-                VERSION="${BASE}~${TAG#"v${BASE}"-}" ;;
               *)
-                echo "::error::tag ${TAG} does not match debian/changelog (${BASE}); expected v${BASE}[-rcN]"
+                echo "::error::release tag ${TAG} does not match debian/changelog (${BASE}); expected v${BASE} or a prerelease like vX.Y.Z-rcN"
                 exit 1 ;;
             esac
           else
