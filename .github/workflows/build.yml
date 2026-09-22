@@ -11,15 +11,6 @@ permissions:
   contents: read
   packages: read
 
-env:
-  # Upstream has no tags and no releases, so odio-ci's resolve-version and
-  # watch-upstream (both release-driven) have nothing to work from. The commit
-  # is pinned here instead; bumping it is a commit to this repo, then a tag.
-  UPSTREAM_REPO: e1z0/Framebuffer-browser
-  UPSTREAM_COMMIT: 4213a694ea2e2e846ef1c176bdb13bf6d025a8a6
-  # The version upstream's own build_debian_packages stamps (PACK_VER).
-  UPSTREAM_VERSION: 1.0.0
-
 jobs:
   # Once for both arches, so they cannot disagree on the version.
   resolve:
@@ -28,32 +19,28 @@ jobs:
     outputs:
       version: ${{ steps.pick.outputs.version }}
     steps:
+      - uses: actions/checkout@v7
+
       - name: Resolve
         id: pick
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          DATE="$(gh api "repos/${UPSTREAM_REPO}/commits/${UPSTREAM_COMMIT}" \
-            --jq '.commit.committer.date' | cut -c1-10 | tr -d -)"
-          # 1.0.0+git20260210.4213a69: '+git' sorts above a future upstream
-          # 1.0.0 proper would not, but the date keeps successive pins ordered.
-          # The committer date is taken in UTC, which can differ by a day from
-          # what a local `git log` shows.
-          BASE="${UPSTREAM_VERSION}+git${DATE}.${UPSTREAM_COMMIT:0:7}"
+          # The changelog is the source of truth for a release; a release tag has
+          # to name it, so a stale tag cannot publish something else.
+          BASE="$(head -1 debian/changelog | sed -E 's/^[^(]*\(([^)]*)\).*/\1/')"
 
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAG="${{ github.ref_name }}"
-            # The tag must name the pinned commit, so a stale tag cannot
-            # publish a package built from something else.
             case "${TAG}" in
+              v*-rc*|v*-beta*|v*-alpha*)
+                # A prerelease names its own version, changelog or not.
+                UPSTREAM="${TAG#v}"
+                # '~' sorts below nothing, so it stays below the release and
+                # apt upgrades off it.
+                VERSION="${UPSTREAM%%-*}~${UPSTREAM#*-}" ;;
               "v${BASE}")                 VERSION="${BASE}" ;;
-              "v${BASE}"-rc*|"v${BASE}"-beta*|"v${BASE}"-alpha*)
-                # '~' sorts below nothing, so the prerelease stays below the
-                # release and apt upgrades off it.
-                VERSION="${BASE}~${TAG#"v${BASE}"-}" ;;
               *)
-                echo "::error::tag ${TAG} does not match the pinned upstream commit; expected v${BASE}[-rcN]"
+                echo "::error::release tag ${TAG} does not match debian/changelog (${BASE}); expected v${BASE} or a prerelease like vX.Y.Z-rcN"
                 exit 1 ;;
             esac
           else
@@ -63,7 +50,7 @@ jobs:
           fi
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "${{ github.ref_name }} → ${UPSTREAM_REPO}@${UPSTREAM_COMMIT:0:7}, deb version ${VERSION}"
+          echo "${{ github.ref_name }} → deb version ${VERSION}"
 
   build:
     name: Build ${{ matrix.arch }}
@@ -83,15 +70,8 @@ jobs:
             runner: ubuntu-24.04-arm
 
     steps:
-      - name: Checkout this repo
+      - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Checkout upstream Framebuffer-browser
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ env.UPSTREAM_REPO }}
-          ref: ${{ env.UPSTREAM_COMMIT }}
-          path: upstream
 
       - name: Login to GHCR
         uses: docker/login-action@v4
@@ -100,46 +80,49 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upstream's own debian/ only holds prebuilt bullseye/bookworm .debs, so
-      # it is replaced wholesale. The changelog is written per build: it
-      # carries the derived version and names the upstream commit, which is
-      # how the shipped package points at its corresponding source.
+      # Copied out of the mount: dpkg-buildpackage writes to the parent.
       - name: Build .deb
         run: |
+          mkdir -p dist
           docker run --rm \
             --platform ${{ matrix.platform }} \
-            -v "$PWD":/workspace -w /workspace \
+            -v "$PWD":/workspace \
             -e VERSION='${{ needs.resolve.outputs.version }}' \
-            -e UPSTREAM_REPO -e UPSTREAM_COMMIT \
+            -e GITHUB_SHA \
             -e DEBEMAIL='mathieu.requillart@gmail.com' \
             -e DEBFULLNAME='Mathieu Réquillart' \
             -e DEB_BUILD_OPTIONS=noddebs \
             ghcr.io/${{ github.repository_owner }}/odio-framebuffer-ui-builder:${{ matrix.arch }} \
             bash -c '
               set -e
-              rm -rf upstream/debian
-              cp -r debian upstream/debian
-              cd upstream
-              dch --create --package fbrowser-kiosk \
-                --newversion "${VERSION}" --distribution trixie --force-distribution \
-                "Build of ${UPSTREAM_REPO}@${UPSTREAM_COMMIT}."
+              mkdir -p /build/src
+              cp -a /workspace/. /build/src/
+              cd /build/src
+              # The image is baked on main, so a branch can outrun it.
+              if ! dpkg-checkbuilddeps 2>/dev/null; then
+                echo "::warning::builder image is behind debian/control, installing build deps"
+                apt-get update -qq
+                apt-get build-dep -y --no-install-recommends ./
+              fi
+              RELEASED="$(head -1 debian/changelog | sed -E "s/^[^(]*\(([^)]*)\).*/\1/")"
+              if [ "${RELEASED}" != "${VERSION}" ]; then
+                # -b: a CI or prerelease version sorts below the released one.
+                dch --newversion "${VERSION}" -b --distribution trixie --force-distribution \
+                  "CI build of ${GITHUB_SHA}."
+              fi
               dpkg-buildpackage -b -us -uc
-              lintian --fail-on error ../fbrowser-kiosk_*.deb
+              lintian --fail-on error /build/odio-kiosk_*.deb
+              cp /build/odio-kiosk_*.deb /workspace/dist/
             '
-
-      - name: Collect package
-        run: |
-          mkdir -p dist
-          mv fbrowser-kiosk_*_${{ matrix.arch }}.deb dist/
           ls -lh dist/
 
       - name: Extract the binary for inspection
-        run: dpkg-deb -x dist/fbrowser-kiosk_*_${{ matrix.arch }}.deb extract/
+        run: dpkg-deb -x dist/odio-kiosk_*_${{ matrix.arch }}.deb extract/
 
       - name: Check binary
         uses: b0bbywan/odio-ci/actions/check-binary@v1.0.3
         with:
-          binary: extract/usr/bin/fbrowser-kiosk
+          binary: extract/usr/bin/odio-kiosk
           arch: ${{ matrix.arch }}
           # Built on trixie, and Depends pins trixie's Qt anyway: the package
           # targets trixie / Pi OS trixie, not bookworm.
@@ -148,7 +131,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: fbrowser-kiosk-${{ matrix.arch }}-deb
+          name: odio-kiosk-${{ matrix.arch }}-deb
           path: dist/*.deb
           if-no-files-found: error
           retention-days: 7
@@ -163,6 +146,6 @@ jobs:
       contents: write
     uses: b0bbywan/odio-ci/.github/workflows/release.yml@v1.0.3
     with:
-      artifact_pattern: fbrowser-kiosk-*-deb
+      artifact_pattern: odio-kiosk-*-deb
     secrets:
       apt_repo_token: ${{ secrets.APT_REPO_TOKEN }}

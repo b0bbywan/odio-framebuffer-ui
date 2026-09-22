@@ -1,0 +1,36 @@
+# A web page on a screen wired to the node, drawn straight onto a framebuffer.
+# One instance per screen: /etc/default/odio-kiosk holds the node's Qt
+# environment, ~/.config/odio-kiosk/<instance>.conf the screen's URL and, if
+# it is not the first one, its FB. Ordering it after a server is a drop-in's
+# job: see the README.
+#
+# Shipped, not enabled. As the user running odio-api:
+#   sudo usermod -aG tty,video,input $USER     # then log in again
+#   sudo loginctl enable-linger $USER          # headless: no login session
+#   systemctl --user enable --now odio-kiosk@main.service
+[Unit]
+Description=odio kiosk (%i)
+StartLimitBurst=15
+StartLimitIntervalSec=30
+
+[Service]
+Type=simple
+# Shipped by the package: without FB the -platform string below is malformed.
+EnvironmentFile=/etc/default/odio-kiosk
+# Optional, so a screen with no file of its own reaches the URL check.
+EnvironmentFile=-%h/.config/odio-kiosk/%i.conf
+ExecStartPre=/bin/sh -c '[ -n "${URL}" ] || { echo "odio-kiosk@%i: no URL. Write URL=... in %h/.config/odio-kiosk/%i.conf" >&2; exit 1; }'
+# odio-api is Type=simple: started is not serving, and the kiosk never retries.
+ExecStartPre=/bin/sh -c 'until curl -fso /dev/null "${URL}"; do sleep 1; done'
+TimeoutStartSec=120
+# -platform, not QT_QPA_PLATFORM: systemd expands ${FB} on a command line only.
+ExecStart=/usr/bin/odio-kiosk -platform linuxfb:fb=${FB}:nographicsmodeswitch=1 ${URL}
+# No SuccessExitStatus=1: SIGTERM kills this binary (143), and declaring 1 a
+# success would cover ExecStartPre and a kiosk that cannot open its framebuffer.
+Restart=on-failure
+RestartSec=2
+KillMode=mixed
+TimeoutStopSec=5
+
+[Install]
+WantedBy=default.target

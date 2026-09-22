@@ -1,21 +1,30 @@
-Source: fbrowser-kiosk
+Source: odio-kiosk
 Section: web
 Priority: optional
 Maintainer: Mathieu Réquillart <mathieu.requillart@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                cmake,
-               qtwebengine5-dev
+               qt6-base-dev,
+               qt6-webengine-dev
 Standards-Version: 4.7.2
-Homepage: https://github.com/e1z0/Framebuffer-browser
+Homepage: https://github.com/b0bbywan/odio-framebuffer-ui
 Vcs-Browser: https://github.com/b0bbywan/odio-framebuffer-ui
+Vcs-Git: https://github.com/b0bbywan/odio-framebuffer-ui.git
 Rules-Requires-Root: no
 
-Package: fbrowser-kiosk
+Package: odio-kiosk
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, curl
+Provides: fbrowser-kiosk
+Replaces: fbrowser-kiosk
+Breaks: fbrowser-kiosk
 Description: QtWebEngine kiosk browser for the Linux framebuffer
  Single-window web browser drawing straight onto /dev/fb0, with no X server
- or Wayland compositor. Built from e1z0/Framebuffer-browser for odio.
+ or Wayland compositor. Derived from e1z0/Framebuffer-browser, reduced to the
+ kiosk window and ported to Qt 6.
  .
- Ships a user unit, odio-screen.service, not enabled, that shows the odio
- embedded UI on a screen wired to the node.
+ Ships a template user unit, odio-kiosk@.service, not enabled: one instance
+ per screen, each naming the page it shows and the framebuffer it draws on.
+ .
+ Named fbrowser-kiosk up to 1.0.0, when the binary and the unit carried
+ different names. It replaces that package.

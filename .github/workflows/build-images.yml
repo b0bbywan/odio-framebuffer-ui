@@ -22,9 +22,8 @@ jobs:
 
     strategy:
       fail-fast: false
-      # No armhf: Raspberry Pi OS armhf (Raspbian, armv6) ships no QtWebEngine
-      # binaries at all, so there is nothing to link against. Pi OS arm64 uses
-      # Debian's own arm64 archive, hence plain debian:trixie for both.
+      # No armhf: Raspbian ships no armhf qt6-webengine binary, as for Qt 5.
+      # Pi OS arm64 uses Debian's own archive, hence debian:trixie for both.
       matrix:
         include:
           - arch: amd64

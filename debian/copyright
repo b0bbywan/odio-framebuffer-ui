@@ -1,26 +1,26 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Framebuffer-browser
-Upstream-Contact: https://github.com/e1z0/Framebuffer-browser/issues
-Source: https://github.com/e1z0/Framebuffer-browser
-Comment: The exact upstream commit a package was built from is recorded in
- its changelog.Debian. Upstream also offers a commercial license; this package
- is distributed under the LGPL-3 terms only.
+Upstream-Name: odio-kiosk
+Source: https://github.com/b0bbywan/odio-framebuffer-ui
+Comment: src/ is derived from e1z0/Framebuffer-browser at commit 4213a694,
+ reduced to the default single-window browser and ported to Qt 6. The full
+ browser, which is the BSD-licensed Qt simplebrowser example, and the
+ data/3rdparty icons are not carried here.
  .
- The lineage is 44670/FBrowser → shownb/FBrowser → e1z0/Framebuffer-browser,
- LGPL-3 throughout. The BSD-licensed Qt simplebrowser example and the
- data/3rdparty icons are only built with FULLBROWSER, and are not in this
- package.
+ The lineage is 44670/FBrowser -> shownb/FBrowser -> e1z0/Framebuffer-browser,
+ LGPL-3 throughout. Upstream also offers a commercial license; this package is
+ distributed under the LGPL-3 terms only.
 
-Files: *
+Files: src/* CMakeLists.txt LICENSE.LGPLv3
 Copyright: 2022 44670 <https://github.com/44670/FBrowser>
            2022 shownb <https://github.com/shownb/FBrowser>
            2022 e1z0 <e1z0@eofnet.lt>
+           2026 Mathieu Réquillart <mathieu.requillart@gmail.com>
 License: LGPL-3
 
-Files: debian/*
+Files: debian/* docker/* .github/* README.md LICENSE
 Copyright: 2026 Mathieu Réquillart <mathieu.requillart@gmail.com>
 License: MIT
-Comment: Packaging, from https://github.com/b0bbywan/odio-framebuffer-ui
+Comment: Packaging, build pipeline and builder image.
 
 License: LGPL-3
  This package is free software; you can redistribute it and/or modify it

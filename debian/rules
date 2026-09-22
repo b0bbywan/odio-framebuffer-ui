@@ -5,18 +5,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 %:
 	dh $@ --buildsystem=cmake --builddirectory=build
 
-# The kiosk variant: the single-window browser odio's UI runs in. Upstream's
-# own packaging script names the two variants the other way round.
-override_dh_auto_configure:
-	dh_auto_configure -- -DFULLBROWSER=OFF
-
-# Upstream's CMakeLists has no install() rule, so dh_auto_install would stage
-# nothing; the binary is renamed on the way, which a .install file cannot do.
-override_dh_auto_install:
-	install -Dm755 build/FBrowser debian/fbrowser-kiosk/usr/bin/fbrowser-kiosk
-
-# dh_installsystemduser also picks up units already installed under
-# usr/lib/systemd/user, and would enable odio-screen.service for every user on
-# install. Showing the UI on a screen is opt-in, per user.
+# @.user.service: the plain name would also land in usr/lib/systemd/system.
+# --no-enable: showing the UI on a screen is opt-in, per user.
 override_dh_installsystemduser:
 	dh_installsystemduser --no-enable
