@@ -92,8 +92,10 @@ list, and Debian gives it no updates. On every start, before the engine loads,
 the kiosk marks the certificates in [`distrust/`](distrust) as distrusted in
 `~/.pki/nssdb`, the user database Chromium reads, and refuses to start if it
 cannot. They are eMudhra's compromised intermediates and the two roots Debian
-removed for them ([odios#104](https://github.com/b0bbywan/odios/discussions/104)).
-A certificate to distrust is a PEM file dropped there and a rebuild.
+removed for them ([odios#104](https://github.com/b0bbywan/odios/discussions/104)),
+and the roots Chrome has since dropped for cause: Entrust, AffirmTrust,
+Chunghwa Telecom and NetLock. A certificate to distrust is a PEM file dropped
+there and a rebuild.
 
 ## Architectures
 

@@ -9,6 +9,9 @@ odio-kiosk (2.0.1) trixie; urgency=high
     Services and emSign ECC Root CA - G3 as distrusted in ~/.pki/nssdb,
     which Chromium honors over its own roots. It refuses to start if it
     cannot.
+  * The same goes for the roots Chrome has distrusted for cause since
+    Chromium 122: Entrust and AffirmTrust, Chunghwa Telecom ePKI and
+    HiPKI G1, NetLock Arany. QtWebEngine still trusted whatever they issue.
 
  -- Mathieu Réquillart <mathieu.requillart@gmail.com>  Sat, 24 Oct 2026 14:00:00 +0200
 
