@@ -1,3 +1,17 @@
+odio-kiosk (2.0.1) trixie; urgency=high
+
+  Distrust eMudhra's compromised CAs
+
+  * QtWebEngine carries its own root list, so Debian's ca-certificates fix
+    for the eMudhra key compromise (DSA-6572-1) does not reach it. On every
+    start, before the engine loads, the kiosk now marks the six compromised
+    TLS intermediates, their six Sectigo cross-signatures, AAA Certificate
+    Services and emSign ECC Root CA - G3 as distrusted in ~/.pki/nssdb,
+    which Chromium honors over its own roots. It refuses to start if it
+    cannot.
+
+ -- Mathieu Réquillart <mathieu.requillart@gmail.com>  Sat, 24 Oct 2026 14:00:00 +0200
+
 odio-kiosk (2.0.0) trixie; urgency=medium
 
   Own source, Qt 6, renamed odio-kiosk

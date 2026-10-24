@@ -85,6 +85,16 @@ PartOf=my-server.service
 after the kiosk, and a server that is itself `After=default.target` closes a
 cycle at boot.
 
+## Distrusted certificates
+
+QtWebEngine ignores the system trust store: Chromium 122 carries its own root
+list, and Debian gives it no updates. On every start, before the engine loads,
+the kiosk marks the certificates in [`distrust/`](distrust) as distrusted in
+`~/.pki/nssdb`, the user database Chromium reads, and refuses to start if it
+cannot. They are eMudhra's compromised intermediates and the two roots Debian
+removed for them ([odios#104](https://github.com/b0bbywan/odios/discussions/104)).
+A certificate to distrust is a PEM file dropped there and a rebuild.
+
 ## Architectures
 
 - `amd64` (Debian trixie)
