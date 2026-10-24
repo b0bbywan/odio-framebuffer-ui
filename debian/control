@@ -5,7 +5,9 @@ Maintainer: Mathieu Réquillart <mathieu.requillart@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                cmake,
                qt6-base-dev,
-               qt6-webengine-dev
+               qt6-webengine-dev,
+               libnss3-dev,
+               pkgconf
 Standards-Version: 4.7.2
 Homepage: https://github.com/b0bbywan/odio-framebuffer-ui
 Vcs-Browser: https://github.com/b0bbywan/odio-framebuffer-ui

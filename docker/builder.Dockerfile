@@ -10,5 +10,5 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       build-essential debhelper cmake \
-      qt6-base-dev qt6-webengine-dev \
+      qt6-base-dev qt6-webengine-dev libnss3-dev pkgconf \
       devscripts lintian
