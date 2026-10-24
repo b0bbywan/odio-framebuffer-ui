@@ -13,8 +13,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("e1z0");
     QApplication a(argc, argv);
 
-    MainWindow* mainWindow = new MainWindow();
-    mainWindow->show();
+    // On the stack: the page must go before QApplication tears the profile down.
+    MainWindow mainWindow;
+    mainWindow.show();
 
     return a.exec();
 }
